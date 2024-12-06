@@ -32,6 +32,7 @@ enum ErrorCode {
     D5RCameraNotInitialized,
     CameraError = 600,
     CameraInitError,
-    CameraReadError
+    CameraReadError,
+    VisialError = 700
 };
 }

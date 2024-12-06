@@ -41,6 +41,11 @@ CameraTop::CameraTop(std::string id) : GxCamera(id) {
     fs4["descriptors"] >> _jaw.descriptors;
     fs4.release();
 
+    // 钳口库定位模板1
+    _posTemplate_1 = cv::imread(root + "/lib/Galaxy/image/model/posTemplate/PosTemple.png", 0);
+    //粗定位点是相对于_roiPos而言的
+    _roughPosPoint = cv::Point2f(370, 1000);
+
     _mapParam = 0.00945084;
 }
 
@@ -175,8 +180,7 @@ bool D5R::CameraTop::SIFT(cv::Mat image, ModelType modelname,
     }
 
     // ROI
-    cv::Point2f roiP(450, 700);
-    cv::Rect roi = cv::Rect(roiP, cv::Size(750, 1348));
+    cv::Rect roi = cv::Rect(_roiPos, cv::Size(750, 2048 - _roiPos.y));
     cv::Mat ROI = image(roi).clone();
 
     // SIFT特征点
@@ -199,12 +203,6 @@ bool D5R::CameraTop::SIFT(cv::Mat image, ModelType modelname,
         }
     }
 
-    // 绘制匹配图
-    //  cv::Mat img_matches_knn;
-    //  cv::drawMatches(model, keyPoints_Model, ROI, keyPoints_Img, goodMatches, img_matches_knn, cv::Scalar::all(-1),
-    //                  cv::Scalar::all(-1), std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
-    //  cv::imwrite("E:/WYL_workspace/D5RC/image/11_22/res_match_123141.png", img_matches_knn);
-
     // 计算
     std::vector<cv::Point2f> model_P, img_P;
     for (const auto &match : goodMatches) {
@@ -220,8 +218,6 @@ bool D5R::CameraTop::SIFT(cv::Mat image, ModelType modelname,
 
     cv::perspectiveTransform(modelPosition, pst, homography);
     return true;
-    // pst[0] += roiP;
-    // pst[1] += roiP;
 }
 
 /**
@@ -269,18 +265,11 @@ void CameraTop::GetMapParam(cv::Mat img) {
 std::vector<std::vector<float>> CameraTop::GetPixelPos() {
     cv::Point2f roiP(800, 648);
     std::vector<std::vector<float>> pos;
-    // Read(_img);
-    // if (_img.empty()) {
-    //     std::cerr << "Failed to read img" << std::endl;
-    //     return pos;
-    // }
-    // int count = 0;
     cv::Mat img;
     Read(img);
     std::vector<cv::Point2f> pos_jaw;
     if (!SIFT(img, JAW, pos_jaw)) {
-        Read(img);
-        SIFT(img, JAW, pos_jaw);
+        throw RobotException(ErrorCode::VisialError, "Failed to match JAW");
     }
     float angle_jaw =
         atan2f(pos_jaw[1].y - pos_jaw[0].y, pos_jaw[1].x - pos_jaw[0].x) * (-180) / CV_PI;
@@ -288,18 +277,18 @@ std::vector<std::vector<float>> CameraTop::GetPixelPos() {
     std::vector<cv::Point2f> pos_clamp;
 
     if (!SIFT(img, CLAMP, pos_clamp)) {
-        Read(img);
-        SIFT(img, CLAMP, pos_clamp);
+        throw RobotException(ErrorCode::VisialError, "Failed to match JAW");
     }
     float angle_clamp =
         atan2f(pos_clamp[0].y - pos_clamp[1].y, pos_clamp[0].x - pos_clamp[1].x) * (-180) / CV_PI;
     pos.push_back({pos_clamp[0].x, pos_clamp[0].y, angle_clamp});
 
-    cv::line(img, pos_jaw[0] + roiP, pos_jaw[1] + roiP, cv::Scalar(0), 4);
-    cv::line(img, pos_clamp[0] + roiP, pos_clamp[1] + roiP, cv::Scalar(0), 4);
-    cv::putText(img, std::to_string(angle_jaw), pos_jaw[1] + roiP,
+    //画图
+    cv::line(img, pos_jaw[0] + _roiPos, pos_jaw[1] + _roiPos, cv::Scalar(0), 4);
+    cv::line(img, pos_clamp[0] + _roiPos, pos_clamp[1] + _roiPos, cv::Scalar(0), 4);
+    cv::putText(img, std::to_string(angle_jaw), pos_jaw[1] + _roiPos,
                 cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0), 4);
-    cv::putText(img, std::to_string(angle_clamp), pos_clamp[0] + roiP,
+    cv::putText(img, std::to_string(angle_clamp), pos_clamp[0] + _roiPos,
                 cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0), 4);
     std::string windowname = "image";
     cv::namedWindow(windowname, cv::WINDOW_NORMAL);
@@ -339,6 +328,21 @@ std::vector<double> CameraTop::GetPhysicError() {
     posError.push_back((pixelPos[0][1] - pixelPos[1][1]) * _mapParam);
     posError.push_back(pixelPos[0][2] - pixelPos[1][2]);
     return posError;
+}
+
+/**
+ * @brief 获取钳口库ROI定位位置，并更新粗定位点，每次换钳口前需调用
+ * 
+ * @param img 输入实时图像，为灰度图
+ */
+void CameraTop::GetROI(cv::Mat img){
+    cv::Mat result;
+    cv::matchTemplate(img, _posTemplate_1, result, cv::TM_SQDIFF_NORMED);
+    cv::Point minLoc, maxLoc;
+    double minVal, maxVal;
+    cv::minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc);
+    _roiPos = cv::Point2f(minLoc.x - 260, minLoc.y + 300);
+    
 }
 
 } // namespace D5R

@@ -37,11 +37,17 @@ class CameraTop : public GxCamera {
     std::vector<std::vector<float>> GetPixelPos();
     std::vector<std::vector<double>> GetPhysicPos();
     std::vector<double> GetPhysicError();
+    void GetROI(cv::Mat img);
 
   private:
     Model _jaw;
     Model _clamp;
     cv::Mat _img;
+
+    cv::Mat _posTemplate_1;
+
+    cv::Point2f _roiPos;
+    cv::Point2f _roughPosPoint;
     double _mapParam;
 };
 
