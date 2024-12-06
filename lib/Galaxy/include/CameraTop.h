@@ -25,6 +25,8 @@ struct Model {
 
 enum ModelType { JAW = 0,
                  CLAMP = 1 };
+enum PosModel { Rough = 0,
+                Fine = 1 };
 
 class CameraTop : public GxCamera {
   public:
@@ -34,9 +36,8 @@ class CameraTop : public GxCamera {
     void GetJawCircleCenter(cv::Mat img);
     bool SIFT(cv::Mat img, ModelType modelname, std::vector<cv::Point2f> &pst);
     void GetMapParam(cv::Mat Calibration_board);
-    std::vector<std::vector<float>> GetPixelPos();
-    std::vector<std::vector<double>> GetPhysicPos();
-    std::vector<double> GetPhysicError();
+    std::vector<std::vector<float>> GetPixelPos(PosModel m, float angle = 90);
+    std::vector<double> GetPhysicError(PosModel m, float angle = 90);
     void GetROI(cv::Mat img);
 
   private:
