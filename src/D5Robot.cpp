@@ -13,7 +13,7 @@
 
 namespace D5R {
 
-Joints JAWPOINT{}; // 钳口位置，需要实验确定
+Joints JAWPOINT{0, 0, 8000000, 0, 0}; // 钳口位置，需要实验确定
 
 D5Robot::D5Robot() {}
 
@@ -214,7 +214,7 @@ void D5Robot::VCJawChange() {
     // 获取一次钳口位置信息
     std::vector<cv::Point2f> jawPos;
     topCamera->SIFT(img, JAW, jawPos);
-    float jawAngle = atan2f(jawPos[0].y - jawPos[1].y, jawPos[0].x - jawPos[1].x) * (-180) / CV_PI;
+    float jawAngle = atan2f(jawPos[1].y - jawPos[0].y, jawPos[1].x - jawPos[0].x) * (-180) / CV_PI;
     // 粗对准
     std::vector<double> posError = topCamera->GetPhysicError(Rough, jawAngle);
     TaskSpace pError{-posError[1], -posError[0], 0, 0, posError[2]};
@@ -232,26 +232,26 @@ void D5Robot::VCJawChange() {
     }
 
     // 下移
-    JointsMoveRelative({0, 0, 0, -1000000, 0});
+    // JointsMoveRelative({0, 0, 0, 8300000, 0});
 
-    // 插入
-    posError.clear();
-    posError = topCamera->GetPhysicError(Fine);
-    pError = {-posError[1], -posError[0], 0, 0, posError[2]};
-    while (abs(pError.Px) > 0.1 || abs(pError.Py) > 0.1 || abs(pError.Rz) > 0.01) {
-        pError.Px = 0.15 * pError.Px;
-        pError.Rz = 0.5 * pError.Rz;
-        pError.Py = 0.4 * pError.Py;
-        jError = KineHelper::InverseDifferential(pError, GetCurrentPose());
-        JointsMoveRelative(jError.ToControlJoint());
-        Sleep(500);
-        posError.clear();
-        posError = topCamera->GetPhysicError(Fine);
-        pError = {-posError[1], -posError[0], 0, 0, posError[2]};
-    }
+    // // 插入
+    // posError.clear();
+    // posError = topCamera->GetPhysicError(Fine);
+    // pError = {-posError[1], -posError[0], 0, 0, posError[2]};
+    // while (abs(pError.Px) > 0.1 || abs(pError.Py) > 0.1 || abs(pError.Rz) > 0.01) {
+    //     pError.Px = 0.15 * pError.Px;
+    //     pError.Rz = 0.5 * pError.Rz;
+    //     pError.Py = 0.4 * pError.Py;
+    //     jError = KineHelper::InverseDifferential(pError, GetCurrentPose());
+    //     JointsMoveRelative(jError.ToControlJoint());
+    //     Sleep(500);
+    //     posError.clear();
+    //     posError = topCamera->GetPhysicError(Fine);
+    //     pError = {-posError[1], -posError[0], 0, 0, posError[2]};
+    // }
 
-    // 上抬
-    JointsMoveRelative({0, 0, 0, 1000000, 0});
+    // // 上抬
+    // JointsMoveRelative({0, 0, 0, -8300000, 0});
 }
 
 } // namespace D5R

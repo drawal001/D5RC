@@ -42,6 +42,7 @@ target_compile_definitions(D5RbotApi PUBLIC "D5R_EXPORTS")
 add_executable(test test.cpp)
 target_link_libraries(test D5Robot)
 target_link_libraries(test D5RbotApi)
+target_include_directories(test PUBLIC "test/debug")
 
 add_executable(TestKineHelper "test/TestKineHelper.cpp")
 target_include_directories(TestKineHelper PUBLIC "${PROJECT_SOURCE_DIR}/include")

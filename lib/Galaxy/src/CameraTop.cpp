@@ -42,9 +42,9 @@ CameraTop::CameraTop(std::string id) : GxCamera(id) {
     fs4.release();
 
     // 钳口库定位模板1
-    _posTemplate_1 = cv::imread(root + "/lib/Galaxy/image/model/posTemplate/PosTemple.png", 0);
+    _posTemplate_1 = cv::imread(root + "/lib/Galaxy/image/model/posTemplate/PosTemple_rect.png", 0);
     // 粗定位点是相对于_roiPos而言的
-    _roughPosPoint = cv::Point2f(370, 1000);
+    _roughPosPoint = cv::Point2f(435, 1050);
 
     _mapParam = 0.00945084;
 }
@@ -180,7 +180,7 @@ bool D5R::CameraTop::SIFT(cv::Mat image, ModelType modelname,
     }
 
     // ROI
-    cv::Rect roi = cv::Rect(_roiPos, cv::Size(750, 2048 - _roiPos.y));
+    cv::Rect roi = cv::Rect(_roiPos, cv::Size(850, 2046 - _roiPos.y));
     cv::Mat ROI = image(roi).clone();
 
     // SIFT特征点
@@ -202,15 +202,25 @@ bool D5R::CameraTop::SIFT(cv::Mat image, ModelType modelname,
             goodMatches.push_back(knn_matche[0]);
         }
     }
+    std::cout << goodMatches.size() << std::endl;
+    // cv::Mat img_matches;
+    // cv::drawMatches(ROI, keyPoints_Img, model, keyPoints_Model, goodMatches, img_matches,
+    //                 cv::Scalar::all(-1), cv::Scalar::all(-1), std::vector<char>(), cv::DrawMatchesFlags::DEFAULT);
+
+    // 显示匹配图
+    // cv::imshow("Matches", img_matches);
+    // cv::waitKey(0);
 
     // 计算
-    std::vector<cv::Point2f> model_P, img_P;
+    std::vector<cv::Point2f>
+        model_P, img_P;
     for (const auto &match : goodMatches) {
         model_P.push_back(keyPoints_Model[match.queryIdx].pt);
         img_P.push_back(keyPoints_Img[match.trainIdx].pt);
     }
 
     if (img_P.size() < 8) {
+        throw RobotException(ErrorCode::VisialError, "Failed to SIFT");
         return false;
     }
 
@@ -266,21 +276,23 @@ std::vector<std::vector<float>> CameraTop::GetPixelPos(PosModel m, float angle) 
     std::vector<std::vector<float>> pos;
     cv::Mat img;
     Read(img);
-    std::vector<cv::Point2f> pos_jaw;
-    if (!SIFT(img, JAW, pos_jaw)) {
-        throw RobotException(ErrorCode::VisialError, "Failed to match JAW");
+    std::vector<cv::Point2f> pos_clamp;
+    if (!SIFT(img, CLAMP, pos_clamp)) {
+        throw RobotException(ErrorCode::VisialError, "Failed to match Clamp");
     }
-    float angle_jaw =
-        atan2f(pos_jaw[1].y - pos_jaw[0].y, pos_jaw[1].x - pos_jaw[0].x) * (-180) / CV_PI;
-    pos.push_back({pos_jaw[0].x, pos_jaw[0].y, angle_jaw});
+    float angle_clamp =
+        atan2f(pos_clamp[0].y - pos_clamp[1].y, pos_clamp[0].x - pos_clamp[1].x) * (-180) / CV_PI;
+    pos.push_back({pos_clamp[0].x, pos_clamp[0].y, angle_clamp});
+
     if (m == Fine) {
-        std::vector<cv::Point2f> pos_clamp;
-        if (!SIFT(img, CLAMP, pos_clamp)) {
+        std::vector<cv::Point2f> pos_jaw;
+        if (!SIFT(img, JAW, pos_jaw)) {
             throw RobotException(ErrorCode::VisialError, "Failed to match JAW");
         }
-        float angle_clamp =
-            atan2f(pos_clamp[0].y - pos_clamp[1].y, pos_clamp[0].x - pos_clamp[1].x) * (-180) / CV_PI;
-        pos.push_back({pos_clamp[0].x, pos_clamp[0].y, angle_clamp});
+        float angle_jaw =
+            atan2f(pos_jaw[1].y - pos_jaw[0].y, pos_jaw[1].x - pos_jaw[0].x) * (-180) / CV_PI;
+        pos.push_back({pos_jaw[0].x, pos_jaw[0].y, angle_jaw});
+
         // 画图
         cv::line(img, pos_jaw[0] + _roiPos, pos_jaw[1] + _roiPos, cv::Scalar(0), 4);
         cv::line(img, pos_clamp[0] + _roiPos, pos_clamp[1] + _roiPos, cv::Scalar(0), 4);
@@ -296,9 +308,9 @@ std::vector<std::vector<float>> CameraTop::GetPixelPos(PosModel m, float angle) 
     } else {
         pos.push_back({_roughPosPoint.x, _roughPosPoint.y, angle});
         // 画图
-        cv::line(img, pos_jaw[0] + _roiPos, pos_jaw[1] + _roiPos, cv::Scalar(0), 4);
+        cv::line(img, pos_clamp[0] + _roiPos, pos_clamp[1] + _roiPos, cv::Scalar(0), 4);
         cv::circle(img, _roughPosPoint + _roiPos, 2, cv::Scalar(0), 2);
-        cv::putText(img, std::to_string(angle_jaw), pos_jaw[1] + _roiPos,
+        cv::putText(img, std::to_string(angle_clamp), pos_clamp[1] + _roiPos,
                     cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0), 4);
         cv::putText(img, std::to_string(angle), _roughPosPoint + _roiPos,
                     cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0), 4);
@@ -339,7 +351,7 @@ void CameraTop::GetROI(cv::Mat img) {
     cv::Point minLoc, maxLoc;
     double minVal, maxVal;
     cv::minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc);
-    _roiPos = cv::Point2f(minLoc.x - 260, minLoc.y + 300);
+    _roiPos = cv::Point2f(minLoc.x - 300, minLoc.y + 300);
 }
 
 } // namespace D5R
