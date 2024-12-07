@@ -23,11 +23,11 @@ int main() {
     //     std::cout << e.what() << std::endl;
     // }
 
-    // try {
-    //     robot.InitTopCamera();
-    // } catch (D5R::RobotException &e) {
-    //     std::cout << e.what() << std::endl;
-    // }
+    try {
+        robot.InitTopCamera();
+    } catch (D5R::RobotException &e) {
+        std::cout << e.what() << std::endl;
+    }
     // GetAndSaveImg(robot.topCamera);
 
     // try {
@@ -37,8 +37,13 @@ int main() {
     // }
     // GetAndSaveImg(robot.botCamera);
 
-    cv::Mat img = cv::imread(root + "test/debug/image/topC_j0.png");
-    GetJawTemple(img);
+    cv::Mat img;
+    robot.topCamera->Read(img);
+    // cv::Mat temp = cv::imread(root + "test/debug/image/output/PosTemple.png", 0);
+    // Test_GetROI(img, temp);
+    Test_Match(img);
+    // cv::Mat img = cv::imread(root + "test/debug/image/output/jaw.png", 0);
+    // GetSIFTParam(img);
 
     // robot.JointsMoveAbsolute({0, 0, 8000000, 8300000, 0});
     // robot.VCJawChange();
@@ -64,7 +69,6 @@ int main() {
 // cv::resizeWindow(winname, cv::Size(1295, 1024));
 // cv::imshow(winname, img);
 // cv::waitKey(0);
-
 
 // cv::Mat img = cv::imread("E:/WYL_workspace/D5RC/image/12_7/topC_0.png", 0);
 // robot.topCamera->GetROI(img);

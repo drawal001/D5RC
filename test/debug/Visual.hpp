@@ -4,7 +4,7 @@
 
 std::string win_name = "test";
 
-void GetAndSaveImg(D5R::CameraTop *topCamera) {
+void Test_GetAndSaveImg(D5R::CameraTop *topCamera) {
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1295, 1024));
     int count = 0;
@@ -28,7 +28,7 @@ void GetAndSaveImg(D5R::CameraTop *topCamera) {
     cv::waitKey(0);
 }
 
-void GetAndSaveImg(D5R::CameraBot *botCamera) {
+void Test_GetAndSaveImg(D5R::CameraBot *botCamera) {
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1295, 1024));
     int count = 0;
@@ -53,7 +53,7 @@ void GetAndSaveImg(D5R::CameraBot *botCamera) {
     cv::waitKey(0);
 }
 
-void GetPosTemplate(cv::Mat img, std::string root) {
+void Test_GetPosTemplate(cv::Mat img, std::string root) {
     cv::Rect roi(790, 130, 280, 280);
     cv::Mat ROI = img(roi).clone();
     cv::rectangle(img, roi, cv::Scalar(0, 0, 255), 4);
@@ -64,7 +64,7 @@ void GetPosTemplate(cv::Mat img, std::string root) {
     cv::imwrite(root + "test/debug/image/PosTemple.png", ROI);
 }
 
-void GetROI(cv::Mat img, cv::Mat temp) {
+void Test_GetROI(cv::Mat img, cv::Mat temp) {
     cv::Mat result;
     cv::matchTemplate(img, temp, result, cv::TM_SQDIFF_NORMED);
     cv::Point minLoc, maxLoc;
@@ -75,15 +75,13 @@ void GetROI(cv::Mat img, cv::Mat temp) {
     cv::Rect roi = cv::Rect(roiPos, cv::Size(850, 2046 - roiPos.y));
     cv::rectangle(img, roi, cv::Scalar(0), 4);
     cv::circle(img, roiPos + cv::Point2f(435, 1050), 4, cv::Scalar(0), 4);
-    std::string win_name = "test";
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1250, 1025));
     cv::imshow("test", img);
     cv::waitKey(0);
 }
 
-void GetJawTemple(cv::Mat img){
-    std::string win_name = "test";
+void Test_GetJawTemple(cv::Mat img) {
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1250, 1025));
 
@@ -154,5 +152,119 @@ void GetJawTemple(cv::Mat img){
     cv::imshow("sdf", black);
     cv::waitKey(0);
     cv::imshow("sdf", roiImg);
+    cv::waitKey(0);
+}
+
+void Test_GetJawCircleCenter(cv::Mat img) {
+    cv::Mat gray;
+    cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
+    cv::Mat bin;
+    cv::threshold(gray, bin, 60, 255, cv::THRESH_BINARY);
+    cv::Rect roi(235, 45, 190, 85);
+    cv::Mat black = cv::Mat(img.size(), gray.type(), cv::Scalar::all(0));
+    bin(roi).copyTo(black(roi));
+    // cv::rectangle(img, roi, cv::Scalar(0, 0, 255), 2);
+    cv::imshow(win_name, black);
+    cv::waitKey(0);
+    // return;
+    cv::Mat inv_bin;
+    cv::bitwise_not(black, inv_bin);
+
+    cv::Mat edge;
+    cv::Canny(inv_bin, edge, 50, 150);
+
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(edge, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    std::vector<cv::Point> contours_;
+    for (auto &contour : contours) {
+        contours_.insert(contours_.end(), contour.begin(), contour.end());
+    }
+    cv::Point2f center;
+    float r;
+    cv::minEnclosingCircle(contours_, center, r);
+    cv::circle(img, center, r, cv::Scalar(0, 0, 255), 2);
+    cv::imshow(win_name, img);
+    cv::waitKey(0);
+    std::cout << center << std::endl;
+}
+
+void Test_GetSIFTParam(cv::Mat model) {
+    cv::Ptr<cv::SIFT> sift = cv::SIFT::create();
+    std::vector<cv::KeyPoint> keyPoints_Model;
+    sift->detect(model, keyPoints_Model);
+    cv::FileStorage fs1("../test/debug/yml/KeyPoints_Jaw.yml", cv::FileStorage::WRITE);
+    fs1 << "keypoints" << keyPoints_Model;
+    fs1.release();
+
+    cv::Mat descriptors_model;
+    sift->compute(model, keyPoints_Model, descriptors_model);
+    cv::FileStorage fs2("../test/debug/yml/Descriptors_Jaw.yml", cv::FileStorage::WRITE);
+    fs2 << "descriptors" << descriptors_model;
+    fs2.release();
+}
+
+void Test_Match(cv::Mat image) {
+    cv::Mat model = cv::imread("../test/debug/image/output/jaw.png", 0);
+
+    cv::Point2f roiPos(489, 422);
+    cv::Rect roi = cv::Rect(roiPos, cv::Size(850, 2046 - roiPos.y));
+    cv::Mat ROI = image(roi).clone();
+
+    cv::Ptr<cv::SIFT> sift = cv::SIFT::create();
+
+    std::vector<cv::KeyPoint> keyPoints_Model;
+    cv::FileStorage fs1("../test/debug/yml/KeyPoints_Jaw.yml", cv::FileStorage::READ);
+    fs1["keypoints"] >> keyPoints_Model;
+    fs1.release();
+
+    cv::Mat descriptors_model;
+    cv::FileStorage fs2("../test/debug/yml/Descriptors_Jaw.yml", cv::FileStorage::READ);
+    fs2["descriptors"] >> descriptors_model;
+    fs2.release();
+
+    // int64 start = cv::getTickCount();
+    std::vector<cv::KeyPoint> keyPoints_Img;
+    sift->detect(ROI, keyPoints_Img);
+    cv::Mat descriptors_Img;
+    sift->compute(ROI, keyPoints_Img, descriptors_Img);
+
+    cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::BRUTEFORCE);
+    std::vector<std::vector<cv::DMatch>> knn_matches;
+    const float ratio_thresh = 0.7f;
+    std::vector<cv::DMatch> goodMatches;
+    matcher->knnMatch(descriptors_model, descriptors_Img, knn_matches, 2);
+    for (auto &knn_matche : knn_matches) {
+        if (knn_matche[0].distance < ratio_thresh * knn_matche[1].distance) {
+            goodMatches.push_back(knn_matche[0]);
+        }
+    }
+    std::cout << "good match size " << goodMatches.size() << std::endl;
+
+    // std::vector<cv::Point2f> model_P, img_P;
+    // for (const auto &match : goodMatches) {
+    //     model_P.push_back(keyPoints_Model[match.queryIdx].pt);
+    //     img_P.push_back(keyPoints_Img[match.trainIdx].pt);
+    // }
+    // cv::Mat homography = cv::findHomography(model_P, img_P, cv::RANSAC);
+
+    // std::vector<cv::Point2f> modelPosition = {cv::Point2f(448, 63), cv::Point2f(445.8, 101)};
+    // std::vector<cv::Point2f> ImgPosition;
+    // cv::perspectiveTransform(modelPosition, ImgPosition, homography);
+    // cv::line(image, ImgPosition[0] + cv::Point2f(800, 648), ImgPosition[1] + cv::Point2f(800, 648), cv::Scalar(0, 0, 255), 2);
+    // float angle = atan2f((ImgPosition[0].y - ImgPosition[1].y), (ImgPosition[0].x - ImgPosition[1].x)) * (-180) / CV_PI;
+    // cv::putText(image, std::to_string(angle), ImgPosition[0] + cv::Point2f(800, 648), cv::FONT_HERSHEY_SIMPLEX, 1.5, cv::Scalar(0, 0, 255), 2);
+
+    // int64 end = cv::getTickCount();
+    // std::cout << 1000.0 * (end - start) / cv::getTickFrequency() << std::endl;
+
+    cv::Mat img_matches_knn;
+
+    cv::drawMatches(model, keyPoints_Model, ROI, keyPoints_Img, goodMatches, img_matches_knn, cv::Scalar::all(-1),cv::Scalar::all(-1), std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+
+    cv::imwrite("../test/debug/image/res_clamp_match_knn_0452.png", img_matches_knn);
+    std::string windowname2 = "Match res";
+    cv::namedWindow(windowname2, cv::WINDOW_NORMAL);
+    cv::resizeWindow(windowname2, cv::Size(1295, 1024));
+    cv::imshow(windowname2, image);
     cv::waitKey(0);
 }
