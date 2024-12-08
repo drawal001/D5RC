@@ -1,9 +1,24 @@
+/**
+ * @file Visual.hpp
+ * @author drawal (2581478521@qq.com)
+ * @brief 视觉debug函数库，开发中
+ * @version 0.1
+ * @date 2024-12-08
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
 #pragma once
 #include "CameraBot.h"
 #include "CameraTop.h"
 
 std::string win_name = "test";
 
+/**
+ * @brief 读取和保存图像，重载：topC
+ *
+ * @param topCamera
+ */
 void Test_GetAndSaveImg(D5R::CameraTop *topCamera) {
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1295, 1024));
@@ -28,6 +43,11 @@ void Test_GetAndSaveImg(D5R::CameraTop *topCamera) {
     cv::waitKey(0);
 }
 
+/**
+ * @brief 读取和保存图像，重载：botC
+ *
+ * @param botCamera
+ */
 void Test_GetAndSaveImg(D5R::CameraBot *botCamera) {
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1295, 1024));
@@ -53,7 +73,12 @@ void Test_GetAndSaveImg(D5R::CameraBot *botCamera) {
     cv::waitKey(0);
 }
 
-void Test_GetPosTemplate(cv::Mat img, std::string root) {
+/**
+ * @brief 获取夹钳库定位模板并保存
+ *
+ * @param img 输入图像
+ */
+void Test_GetPosTemplate(cv::Mat img) {
     cv::Rect roi(790, 130, 280, 280);
     cv::Mat ROI = img(roi).clone();
     cv::rectangle(img, roi, cv::Scalar(0, 0, 255), 4);
@@ -61,9 +86,15 @@ void Test_GetPosTemplate(cv::Mat img, std::string root) {
     cv::waitKey(0);
     cv::imshow(win_name, ROI);
     cv::waitKey(0);
-    cv::imwrite(root + "test/debug/image/PosTemple.png", ROI);
+    cv::imwrite("../test/debug/image/PosTemple.png", ROI);
 }
 
+/**
+ * @brief 根据夹钳库定位模板对图像进行切割，获取切割后的定位点
+ *
+ * @param img
+ * @param temp
+ */
 void Test_GetROI(cv::Mat img, cv::Mat temp) {
     cv::Mat result;
     cv::matchTemplate(img, temp, result, cv::TM_SQDIFF_NORMED);
@@ -81,6 +112,11 @@ void Test_GetROI(cv::Mat img, cv::Mat temp) {
     cv::waitKey(0);
 }
 
+/**
+ * @brief 获取并保存钳口的模板，并进行图像处理确定定位信息
+ *
+ * @param img
+ */
 void Test_GetJawTemplate(cv::Mat img) {
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1250, 1025));
@@ -155,6 +191,11 @@ void Test_GetJawTemplate(cv::Mat img) {
     cv::waitKey(0);
 }
 
+/**
+ * @brief 获取钳口模板中的钳口圆心点位点
+ *
+ * @param img
+ */
 void Test_GetJawCircleCenter(cv::Mat img) {
     cv::Mat gray;
     cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
@@ -188,6 +229,12 @@ void Test_GetJawCircleCenter(cv::Mat img) {
     std::cout << center << std::endl;
 }
 
+/**
+ * @brief 获取SIFT关键点与匹配符，保存成yml格式文件
+ *
+ * @param model
+ * @param m ModelType：-JAW -CLAMP
+ */
 void Test_GetSIFTParam(cv::Mat model, ModelType m) {
     std::string filename_keypoint, filename_descriptors;
     if (m == JAW) {
@@ -211,6 +258,12 @@ void Test_GetSIFTParam(cv::Mat model, ModelType m) {
     fs2.release();
 }
 
+/**
+ * @brief 测试SIFT匹配效果
+ *
+ * @param image
+ * @param m ModelType：-JAW -CLAMP
+ */
 void Test_Match(cv::Mat image, ModelType m) {
     cv::Mat model;
     std::string filename_keypoint, filename_descriptors;
@@ -218,7 +271,7 @@ void Test_Match(cv::Mat image, ModelType m) {
         model = cv::imread("../test/debug/image/output/jaw.png", 0);
         filename_keypoint = "../test/debug/yml/KeyPoints_Jaw.yml";
         filename_descriptors = "../test/debug/yml/Descriptors_Jaw.yml";
-    }else {
+    } else {
         model = cv::imread("../test/debug/image/output/clamp.png", 0);
         filename_keypoint = "../test/debug/yml/KeyPoints_Clamp.yml";
         filename_descriptors = "../test/debug/yml/Descriptors_Clamp.yml";
@@ -287,6 +340,11 @@ void Test_Match(cv::Mat image, ModelType m) {
     cv::waitKey(0);
 }
 
+/**
+ * @brief 获取并保存夹钳模板，并获取其定位信息
+ *
+ * @param img
+ */
 void Test_GetClampTemplate(cv::Mat img) {
     // cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     // cv::resizeWindow(win_name, cv::Size(1250, 1025));
