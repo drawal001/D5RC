@@ -20,13 +20,13 @@ namespace D5R {
 CameraTop::CameraTop(std::string id) : GxCamera(id) {
     // 夹钳模板
     std::string root(ROOT_DIR);
-    _clamp.img = cv::imread(root + "/lib/Galaxy/image/model/clamp.png", 0);
-    _clamp.center = cv::Point2f(448, 63);
-    _clamp.point = cv::Point2f(445.8, 101);
-    cv::FileStorage fs1(root + "/lib/Galaxy/image/yml/KeyPoints_Clamp.yml", cv::FileStorage::READ);
+    _clamp.img = cv::imread(root + "/lib/Galaxy/image/model/clampTemplate/clamp.png", 0);
+    _clamp.center = cv::Point2f(318, 105);
+    _clamp.point = cv::Point2f(321, 220.5);
+    cv::FileStorage fs1(root + "/lib/Galaxy/image/model/clampTemplate/KeyPoints_Clamp.yml", cv::FileStorage::READ);
     fs1["keypoints"] >> _clamp.keypoints;
     fs1.release();
-    cv::FileStorage fs2(root + "/lib/Galaxy/image/yml/Descriptors_Clamp.yml", cv::FileStorage::READ);
+    cv::FileStorage fs2(root + "/lib/Galaxy/image/model/clampTemplate/Descriptors_Clamp.yml", cv::FileStorage::READ);
     fs2["descriptors"] >> _clamp.descriptors;
     fs2.release();
     // 钳口模板

@@ -7,7 +7,7 @@ std::string win_name = "test";
 void Test_GetAndSaveImg(D5R::CameraTop *topCamera) {
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1295, 1024));
-    int count = 0;
+    int count = 1;
     cv::Mat img_top;
     while (topCamera->Read(img_top)) {
 
@@ -19,7 +19,7 @@ void Test_GetAndSaveImg(D5R::CameraTop *topCamera) {
         if (cv::waitKey(1) == 32) {
             // topCamera.GetMapParam(img_top);
             std::string filename =
-                "../image/12_7/topC_j" + std::to_string(count++) + ".png";
+                "../image/12_8/topC_" + std::to_string(count++) + ".png";
             cv::imwrite(filename, img_top);
             // std::cout << count++ << std::endl;
             continue;
@@ -44,7 +44,7 @@ void Test_GetAndSaveImg(D5R::CameraBot *botCamera) {
         if (cv::waitKey(1) == 32) {
             // botCamera.GetMapParam(img_bot);
             std::string filename =
-                "../image/12_7/botC_" + std::to_string(count++) + ".png";
+                "../image/12_8/botC_" + std::to_string(count++) + ".png";
             cv::imwrite(filename, img_bot);
             // std::cout << count++ << std::endl;
             continue;
@@ -81,7 +81,7 @@ void Test_GetROI(cv::Mat img, cv::Mat temp) {
     cv::waitKey(0);
 }
 
-void Test_GetJawTemple(cv::Mat img) {
+void Test_GetJawTemplate(cv::Mat img) {
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1250, 1025));
 
@@ -188,23 +188,41 @@ void Test_GetJawCircleCenter(cv::Mat img) {
     std::cout << center << std::endl;
 }
 
-void Test_GetSIFTParam(cv::Mat model) {
+void Test_GetSIFTParam(cv::Mat model, ModelType m) {
+    std::string filename_keypoint, filename_descriptors;
+    if (m == JAW) {
+        filename_keypoint = "../test/debug/yml/KeyPoints_Jaw.yml";
+        filename_descriptors = "../test/debug/yml/Descriptors_Jaw.yml";
+    } else {
+        filename_keypoint = "../test/debug/yml/KeyPoints_Clamp.yml";
+        filename_descriptors = "../test/debug/yml/Descriptors_Clamp.yml";
+    }
     cv::Ptr<cv::SIFT> sift = cv::SIFT::create();
     std::vector<cv::KeyPoint> keyPoints_Model;
     sift->detect(model, keyPoints_Model);
-    cv::FileStorage fs1("../test/debug/yml/KeyPoints_Jaw.yml", cv::FileStorage::WRITE);
+    cv::FileStorage fs1(filename_keypoint, cv::FileStorage::WRITE);
     fs1 << "keypoints" << keyPoints_Model;
     fs1.release();
 
     cv::Mat descriptors_model;
     sift->compute(model, keyPoints_Model, descriptors_model);
-    cv::FileStorage fs2("../test/debug/yml/Descriptors_Jaw.yml", cv::FileStorage::WRITE);
+    cv::FileStorage fs2(filename_descriptors, cv::FileStorage::WRITE);
     fs2 << "descriptors" << descriptors_model;
     fs2.release();
 }
 
-void Test_Match(cv::Mat image) {
-    cv::Mat model = cv::imread("../test/debug/image/output/jaw.png", 0);
+void Test_Match(cv::Mat image, ModelType m) {
+    cv::Mat model;
+    std::string filename_keypoint, filename_descriptors;
+    if (m == JAW) {
+        model = cv::imread("../test/debug/image/output/jaw.png", 0);
+        filename_keypoint = "../test/debug/yml/KeyPoints_Jaw.yml";
+        filename_descriptors = "../test/debug/yml/Descriptors_Jaw.yml";
+    }else {
+        model = cv::imread("../test/debug/image/output/clamp.png", 0);
+        filename_keypoint = "../test/debug/yml/KeyPoints_Clamp.yml";
+        filename_descriptors = "../test/debug/yml/Descriptors_Clamp.yml";
+    }
 
     cv::Point2f roiPos(489, 422);
     cv::Rect roi = cv::Rect(roiPos, cv::Size(850, 2046 - roiPos.y));
@@ -213,12 +231,12 @@ void Test_Match(cv::Mat image) {
     cv::Ptr<cv::SIFT> sift = cv::SIFT::create();
 
     std::vector<cv::KeyPoint> keyPoints_Model;
-    cv::FileStorage fs1("../test/debug/yml/KeyPoints_Jaw.yml", cv::FileStorage::READ);
+    cv::FileStorage fs1(filename_keypoint, cv::FileStorage::READ);
     fs1["keypoints"] >> keyPoints_Model;
     fs1.release();
 
     cv::Mat descriptors_model;
-    cv::FileStorage fs2("../test/debug/yml/Descriptors_Jaw.yml", cv::FileStorage::READ);
+    cv::FileStorage fs2(filename_descriptors, cv::FileStorage::READ);
     fs2["descriptors"] >> descriptors_model;
     fs2.release();
 
@@ -259,7 +277,7 @@ void Test_Match(cv::Mat image) {
 
     cv::Mat img_matches_knn;
 
-    cv::drawMatches(model, keyPoints_Model, ROI, keyPoints_Img, goodMatches, img_matches_knn, cv::Scalar::all(-1),cv::Scalar::all(-1), std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+    cv::drawMatches(model, keyPoints_Model, ROI, keyPoints_Img, goodMatches, img_matches_knn, cv::Scalar::all(-1), cv::Scalar::all(-1), std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
 
     cv::imwrite("../test/debug/image/res_clamp_match_knn_0452.png", img_matches_knn);
     std::string windowname2 = "Match res";
@@ -267,4 +285,139 @@ void Test_Match(cv::Mat image) {
     cv::resizeWindow(windowname2, cv::Size(1295, 1024));
     cv::imshow(windowname2, image);
     cv::waitKey(0);
+}
+
+void Test_GetClampTemplate(cv::Mat img) {
+    // cv::namedWindow(win_name, cv::WINDOW_NORMAL);
+    // cv::resizeWindow(win_name, cv::Size(1250, 1025));
+
+    // cv::Point2f roiP(1350, 900);
+    // cv::Rect roi = cv::Rect(roiP, cv::Size(650, 1000));
+    // cv::Mat roiImg = img(roi).clone();
+    // cv::rectangle(img, roi, cv::Scalar(0), 4);
+    // cv::imshow(win_name, img);
+    // cv::waitKey(0);
+    // cv::imwrite("../test/debug/image/output/clamp.png", roiImg);
+    // return;
+
+    cv::Rect roi(0, 0, 650, 500);
+    cv::Mat roiImg = img(roi).clone();
+    // cv::imshow("test",roiImg);
+    // cv::waitKey(0);
+    // return;
+
+    cv::Mat gray;
+    cv::cvtColor(roiImg, gray, cv::COLOR_BGR2GRAY);
+    cv::Mat Imgblur;
+
+    cv::medianBlur(gray, Imgblur, 3);
+    // 左右分批处理
+    cv::Rect roi_left = cv::Rect(0, 0, 200, 500);
+    cv::Mat imgRoi_left = Imgblur(roi_left).clone();
+    cv::Rect roi_right = cv::Rect(400, 0, 200, 500);
+    cv::Mat imgRoi_right = Imgblur(roi_right).clone();
+    // cv::imshow("test", imgRoi_left);
+    // cv::waitKey(0);
+    // cv::imshow("test", imgRoi_right);
+    // cv::waitKey(0);
+    // return;
+    // 提取轮廓
+    cv::Mat edges_left;
+    cv::Canny(imgRoi_left, edges_left, 80, 90);
+    std::vector<std::vector<cv::Point>> contours_left;
+    cv::findContours(edges_left, contours_left, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    std::vector<cv::Point> contour_left;
+    for (auto &contour : contours_left) {
+        contour_left.insert(contour_left.end(), contour.begin(), contour.end());
+    }
+
+    cv::Mat edges_right;
+    cv::Canny(imgRoi_right, edges_right, 70, 100);
+    std::vector<std::vector<cv::Point>> contours_right;
+    cv::findContours(edges_right, contours_right, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    std::vector<cv::Point> contour_right;
+    for (auto &contour : contours_right) {
+        contour_right.insert(contour_right.end(), contour.begin(), contour.end());
+    }
+
+    std::cout << contour_left.size() << std::endl;
+    std::cout << contour_right.size() << std::endl;
+    // cv::imshow("test", edges_left);
+    // cv::waitKey(0);
+    // cv::imshow("test", edges_right);
+    // cv::waitKey(0);
+    // return;
+
+    cv::Mat black_left = cv::Mat(imgRoi_left.size(), imgRoi_left.type(), cv::Scalar::all(0));
+    cv::Mat black_right = cv::Mat(imgRoi_right.size(), imgRoi_right.type(), cv::Scalar::all(0));
+
+    // 凸包
+    std::vector<cv::Point> hull_left;
+    cv::convexHull(cv::Mat(contour_left), hull_left);
+    std::vector<cv::Point> hull_right;
+    cv::convexHull(cv::Mat(contour_right), hull_right);
+
+    // 绘制
+    if (hull_left.size() > 1) {
+        for (int i = 0; i < hull_left.size() - 1; i++) {
+            cv::line(black_left, hull_left[i], hull_left[i + 1], cv::Scalar(255), 2);
+        }
+        cv::line(black_left, hull_left[hull_left.size() - 1], hull_left[0], cv::Scalar(255), 2);
+    }
+
+    if (hull_right.size() > 1) {
+        for (int i = 0; i < hull_right.size() - 1; i++) {
+            cv::line(black_right, hull_right[i], hull_right[i + 1], cv::Scalar(255), 2);
+        }
+        cv::line(black_right, hull_right[hull_right.size() - 1], hull_right[0], cv::Scalar(255), 2);
+    }
+    // cv::imshow("test", black_left);
+    // cv::waitKey(0);
+    // cv::imshow("test", black_right);
+    // cv::waitKey(0);
+    // return;
+
+    // 霍夫直线拟合
+    std::vector<cv::Vec4i> lines_left;
+    cv::HoughLinesP(black_left, lines_left, 1, CV_PI / 180, 50, 350, 20);
+    std::cout << lines_left.size() << std::endl;
+    std::vector<cv::Vec4i> lines_right;
+    cv::HoughLinesP(black_right, lines_right, 1, CV_PI / 180, 50, 375, 20);
+    std::cout << lines_right.size() << std::endl;
+
+    // return;
+    // 绘制直线
+    // 2,3
+    for (auto &line : lines_left) {
+        cv::line(img, cv::Point(line[0], line[1]), cv::Point(line[2] - 3, line[3]), cv::Scalar(0, 0, 255), 2);
+        float angle_left = atan2f((line[3] - line[1]), (line[2] - 3 - line[0])) * (-180) / CV_PI;
+        cv::putText(img, std::to_string(angle_left), cv::Point(line[2], line[3]), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255));
+    }
+    for (auto &line : lines_right) {
+        cv::line(img, cv::Point(line[0] + 2, line[1]) + cv::Point(400, 0), cv::Point(line[2] + 3, line[3]) + cv::Point(400, 0), cv::Scalar(0, 0, 255), 2);
+        float angle_right = atan2f((line[1] - line[3]), (line[0] + 2 - line[2] - 3)) * (-180) / CV_PI;
+        cv::putText(img, std::to_string(angle_right), cv::Point(line[0], line[1]) + cv::Point(400, 0), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255));
+    }
+    cv::Point2f up = 0.5 * (cv::Point(lines_right[0][0] + 2, lines_right[0][1]) + cv::Point(lines_left[0][2] - 3, lines_left[0][3]) + cv::Point(400, 0));
+    cv::Point2f down = 0.5 * (cv::Point(lines_right[0][2] + 3, lines_right[0][3]) + cv::Point(lines_left[0][0], lines_left[0][1]) + cv::Point(400, 0));
+    down = up - 0.3 * (up - down);
+    cv::line(img, up, down, cv::Scalar(0, 0, 255), 2);
+    float angle = atan2f((up.y - down.y), (up.x - down.x)) * (-180) / CV_PI;
+    cv::putText(img, std::to_string(angle), up, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255));
+
+    std::cout << up << std::endl;
+    std::cout << down << std::endl;
+
+    // cv::imshow("dsdfs", edges_left);
+    // cv::waitKey(0);
+    // cv::imshow("dsdfs", edges_right);
+    // cv::waitKey(0);
+    // cv::imshow("dsdfs", black_left);
+    // cv::waitKey(0);
+    // cv::imshow("dsdfs", black_right);
+    // cv::waitKey(0);
+
+    cv::imshow("dsdfs", img);
+    cv::waitKey(0);
+    cv::destroyAllWindows();
 }
