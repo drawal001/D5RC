@@ -26,7 +26,7 @@ void Test_GetAndSaveImg(D5R::CameraTop *topCamera) {
     cv::Mat img_top;
     while (topCamera->Read(img_top)) {
 
-        // cv::line(img_top, cv::Point(100, 1600), cv::Point(1800, 1600), cv::Scalar(0), 2);
+        cv::line(img_top, cv::Point(100, 1600), cv::Point(1800, 1600), cv::Scalar(0), 2);
         cv::imshow(win_name, img_top);
         if (cv::waitKey(1) == 27) {
             break;
