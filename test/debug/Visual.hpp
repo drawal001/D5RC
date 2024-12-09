@@ -235,9 +235,9 @@ void Test_GetJawCircleCenter(cv::Mat img) {
  * @param model
  * @param m ModelType：-JAW -CLAMP
  */
-void Test_GetSIFTParam(cv::Mat model, ModelType m) {
+void Test_GetSIFTParam(cv::Mat model, D5R::ModelType m) {
     std::string filename_keypoint, filename_descriptors;
-    if (m == JAW) {
+    if (m == D5R::JAW) {
         filename_keypoint = "../test/debug/yml/KeyPoints_Jaw.yml";
         filename_descriptors = "../test/debug/yml/Descriptors_Jaw.yml";
     } else {
@@ -264,10 +264,10 @@ void Test_GetSIFTParam(cv::Mat model, ModelType m) {
  * @param image
  * @param m ModelType：-JAW -CLAMP
  */
-void Test_Match(cv::Mat image, ModelType m) {
+void Test_Match(cv::Mat image, D5R::ModelType m) {
     cv::Mat model;
     std::string filename_keypoint, filename_descriptors;
-    if (m == JAW) {
+    if (m == D5R::JAW) {
         model = cv::imread("../test/debug/image/output/jaw.png", 0);
         filename_keypoint = "../test/debug/yml/KeyPoints_Jaw.yml";
         filename_descriptors = "../test/debug/yml/Descriptors_Jaw.yml";
