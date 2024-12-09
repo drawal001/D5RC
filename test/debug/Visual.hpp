@@ -26,7 +26,7 @@ void Test_GetAndSaveImg(D5R::CameraTop *topCamera) {
     cv::Mat img_top;
     while (topCamera->Read(img_top)) {
 
-        cv::line(img_top, cv::Point(100, 1600), cv::Point(1800, 1600), cv::Scalar(0), 2);
+        // cv::line(img_top, cv::Point(100, 1620), cv::Point(1800, 1620), cv::Scalar(0), 2);
         cv::imshow(win_name, img_top);
         if (cv::waitKey(1) == 27) {
             break;
@@ -552,10 +552,13 @@ void Test_GetClampTemplate_BotC(cv::Mat img) {
     cv::resizeWindow(win_name, cv::Size(1400, 500));
     cv::Mat gray;
     cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
-    // cv::circle(img, cv::Point2f(75, 85), 2, cv::Scalar(0, 0, 255));
-    // cv::circle(img, cv::Point2f(455, 86), 2, cv::Scalar(0, 0, 255));
-    // cv::circle(img, cv::Point2f(465, 86), 2, cv::Scalar(0, 0, 255));
-    // cv::circle(img, cv::Point2f(475, 86), 2, cv::Scalar(0, 0, 255));
+    cv::circle(img, cv::Point2f(75, 85), 2, cv::Scalar(0, 0, 255));
+    cv::circle(img, cv::Point2f(455, 86), 2, cv::Scalar(0, 0, 255));
+    cv::circle(img, cv::Point2f(465, 86), 2, cv::Scalar(0, 0, 255));
+    cv::circle(img, cv::Point2f(475, 86), 2, cv::Scalar(0, 0, 255));
+    cv::imshow(win_name, img);
+    cv::waitKey(0);
+    return;
     cv::Mat bin;
     cv::threshold(gray, bin, 25, 255, cv::THRESH_BINARY_INV);
     cv::imshow(win_name, bin);

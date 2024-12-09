@@ -13,7 +13,7 @@
 
 namespace D5R {
 
-Joints JAWPOINT{0, 0, 8000000, 0, 0}; // 钳口位置，需要实验确定
+Joints JAWPOINT{0, 0, 7500000, 0, 0}; // 钳口位置，需要实验确定
 
 D5Robot::D5Robot() {}
 
@@ -207,6 +207,7 @@ void D5Robot::VCJawChange() {
     }
     // 初始位置
     JointsMoveAbsolute(JAWPOINT);
+    Sleep(2000);
     // 获取ROI区域
     cv::Mat img;
     topCamera->Read(img);
@@ -232,15 +233,15 @@ void D5Robot::VCJawChange() {
     }
 
     // 下移
-    JointsMoveRelative({0, 0, 0, 8200000, 0}); //有问题~
+    JointsMoveRelative({0, 0, 0, 7500000, 0}); // 有问题~
 
     // // 插入
     posError.clear();
     posError = topCamera->GetPhysicError(Fine);
     pError = {posError[1], posError[0], 0, 0, posError[2]};
     while (abs(pError.Px) > 0.1 || abs(pError.Py) > 0.1 || abs(pError.Rz) > 0.1) {
-        if(abs(pError.Rz > 3)){
-            JointsMoveRelative({0, -1000000, 0, 0, 0});
+        if (abs(pError.Rz) > 5) {
+            JointsMoveRelative({0, 0, -1000000, 0, 0});
             Sleep(500);
             posError.clear();
             posError = topCamera->GetPhysicError(Fine);
