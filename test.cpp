@@ -37,9 +37,8 @@ int main() {
 
     // robot.JointsMoveAbsolute({0, 0, 8000000, 8300000, 0});
     // robot.JointsMoveAbsolute({0, 0, 8000000, 0, 0});
-    cv::Mat img = cv::imread("../image/12_8/topC_1.png");
-    cv::Mat temp = cv::imread("../test/debug/image/output/clamp.png");
-    Test_Match(img, CLAMP);
+    cv::Mat img = cv::imread("../test/debug/image/output/clamp_bot.png");
+    Test_GetClampTemplate_BotC(img);
     // Test_GetSIFTParam(temp, CLAMP);
     // Test_GetAndSaveImg(robot.topCamera);
 

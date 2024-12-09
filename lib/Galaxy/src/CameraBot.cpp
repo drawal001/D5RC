@@ -35,28 +35,29 @@ CameraBot::CameraBot(std::string id) : GxCamera(id) {
  */
 std::vector<float> CameraBot::GetHorizontalLine(cv::Mat img) {
     // 将钳口台下半部分遮住，防止干扰，具体使用根据钳口台与相机高度而定
-    cv::Rect roi(0, 1000, 2592, 1048);
-    img(roi).setTo(cv::Scalar(255));
+    cv::Point2f roiPos(0, 1500);
+    cv::Rect roi = cv::Rect(roiPos, cv::Size(2592, 548));
+    cv::Mat ROI = img(roi).clone();
 
     // 图像处理
     cv::Mat bin;
-    cv::threshold(img, bin, 250, 255, cv::THRESH_BINARY);
+    cv::threshold(ROI, bin, 50, 255, cv::THRESH_BINARY);
     cv::Mat gauss;
     cv::GaussianBlur(bin, gauss, cv::Size(5, 5), 25);
     cv::Mat dst, edge;
     cv::Scharr(gauss, dst, CV_32F, 1, 0);
     cv::convertScaleAbs(dst, edge);
     std::vector<cv::Vec4f> lines;
-    cv::HoughLinesP(edge, lines, 1, CV_PI / 180, 250, 1000, 300);
+    cv::HoughLinesP(edge, lines, 1, CV_PI / 180, 350, 1000, 300);
 
     // 最小二乘拟合
     int n = lines.size() * 2;
     float sum_x = 0, sum_y = 0, sum_xy = 0, sum_x2 = 0;
     for (auto &line : lines) {
-        sum_x += (line[0] + line[2]);
-        sum_y += (line[1] + line[3]);
-        sum_xy += (line[0] * line[1] + line[2] * line[3]);
-        sum_x2 += (line[0] * line[0] + line[2] * line[2]);
+        sum_x += (line[0] + line[2] + 2 * roiPos.x);
+        sum_y += (line[1] + line[3] + 2 * roiPos.y);
+        sum_xy += ((line[0] + roiPos.x) * (line[1] + roiPos.y) + (line[2] + roiPos.x) * (line[3] + roiPos.y));
+        sum_x2 += ((line[0] + roiPos.x) * (line[0] + roiPos.x) + (line[2] + roiPos.x) * (line[2] + roiPos.x));
     }
     float mean_x = sum_x / n;
     float mean_y = sum_y / n;
