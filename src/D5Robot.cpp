@@ -13,7 +13,7 @@
 
 namespace D5R {
 
-Joints JAWPOINT{0, 0, 7500000, 0, 0}; // 钳口位置，需要实验确定
+Joints JAWPOINT{0, 0, 7500000, 5000000, 0}; // 钳口位置，需要实验确定
 
 D5Robot::D5Robot() {}
 

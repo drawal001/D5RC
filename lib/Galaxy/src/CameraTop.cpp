@@ -21,8 +21,8 @@ CameraTop::CameraTop(std::string id) : GxCamera(id) {
     // 夹钳模板
     std::string root(ROOT_DIR);
     _clamp.img = cv::imread(root + "/lib/Galaxy/image/model/clampTemplate/clamp.png", 0);
-    _clamp.center = cv::Point2f(318, 105);
-    _clamp.point = cv::Point2f(321, 220.5);
+    _clamp.center = cv::Point2f(330, 29);
+    _clamp.point = cv::Point2f(331.2, 149.3);
     cv::FileStorage fs1(root + "/lib/Galaxy/image/model/clampTemplate/KeyPoints_Clamp.yml", cv::FileStorage::READ);
     fs1["keypoints"] >> _clamp.keypoints;
     fs1.release();
