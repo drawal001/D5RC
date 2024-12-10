@@ -19,14 +19,15 @@ class CameraBot : public GxCamera {
     CameraBot(std::string id);
     ~CameraBot();
 
-    std::vector<float> GetHorizontalLine(cv::Mat img);
+    void GetHorizontalLine(cv::Mat img);
     std::vector<cv::Point2f> GetModelPoints(cv::Mat img);
-    double GetDistance(cv::Mat img, std::vector<float> line_params);
+    double GetDistance(cv::Mat img);
     void GetMapParam(cv::Mat Calibration_board);
 
   private:
     double _mapParam;
     cv::Mat _clamp;
     std::vector<cv::Point2f> _points;
+    float _line_a, _line_b;
 };
 } // namespace D5R

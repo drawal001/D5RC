@@ -23,11 +23,11 @@ int main() {
     //     std::cout << e.what() << std::endl;
     // }
 
-    try {
-        robot.InitTopCamera();
-    } catch (D5R::RobotException &e) {
-        std::cout << e.what() << std::endl;
-    }
+    // try {
+    //     robot.InitTopCamera();
+    // } catch (D5R::RobotException &e) {
+    //     std::cout << e.what() << std::endl;
+    // }
 
     // try {
     //     robot.InitBotCamera();
@@ -37,13 +37,10 @@ int main() {
 
     // robot.JointsMoveAbsolute({0, 0, 14000000, 5000000, 0});
     // robot.JointsMoveRelative({0, 0, 0, 5000000, 0});
+    // robot.JointsMoveAbsolute({0, 0, 7500000, 0, 0});
 
-    // cv::Mat img = cv::imread("../test/debug/image/output/clamp.png");
-    cv::Mat img = cv::imread("../image/12_10/topC_2.png", 0);
-    cv::Mat temp = cv::imread("../test/debug/image/output/PosTemple.png", 0);
-    // Test_GetROI(img, temp);
-    // Test_GetSIFTParam(img, CLAMP);
-    Test_Match(img, CLAMP);
+    // cv::Mat img = cv::imread("../image/12_10/botC_1.png");
+    // Test_GetBotCameraPosLine(img);
 
     // robot.VCJawChange();
 

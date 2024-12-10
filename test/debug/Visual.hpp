@@ -51,7 +51,7 @@ void Test_GetAndSaveImg(D5R::CameraTop *topCamera) {
 void Test_GetAndSaveImg(D5R::CameraBot *botCamera) {
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1295, 1024));
-    int count = 0;
+    int count = 1;
 
     cv::Mat img_bot;
     while (botCamera->Read(img_bot)) {
@@ -371,7 +371,7 @@ void Test_GetClampTemplate(cv::Mat img) {
     cv::findContours(edges_left, contours_left, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
     std::vector<cv::Point> contour_left;
     for (auto &contour : contours_left) {
-        if(contour.size() < 50){
+        if (contour.size() < 50) {
             continue;
         }
         contour_left.insert(contour_left.end(), contour.begin(), contour.end());
@@ -447,7 +447,7 @@ void Test_GetClampTemplate(cv::Mat img) {
         cv::putText(img, std::to_string(angle_right), cv::Point(line[0], line[1]) + roiPos_right, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255));
     }
     cv::Point2f up = 0.5 * (cv::Point(lines_right[0][0], lines_right[0][1]) + cv::Point(lines_left[0][2], lines_left[0][3]) + roiPos_right);
-    cv::Point2f down = 0.5 * (cv::Point(lines_right[0][2] + 2 , lines_right[0][3]) + cv::Point(lines_left[0][0], lines_left[0][1]) + roiPos_right);
+    cv::Point2f down = 0.5 * (cv::Point(lines_right[0][2] + 2, lines_right[0][3]) + cv::Point(lines_left[0][0], lines_left[0][1]) + roiPos_right);
     down = up - 0.3 * (up - down);
     cv::line(img, up, down, cv::Scalar(0, 0, 255), 2);
     float angle = atan2f((up.y - down.y), (up.x - down.x)) * (-180) / CV_PI;
@@ -466,34 +466,34 @@ void Test_GetBotCameraPosLine(cv::Mat img) {
     cv::resizeWindow(win_name, cv::Size(1295, 275));
     cv::Mat gray;
     cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
-    cv::Point2f roiPos(0, 1500);
-    cv::Rect roi = cv::Rect(roiPos, cv::Size(2592, 548));
+    cv::Point2f roiPos(200, 1700);
+    cv::Rect roi = cv::Rect(roiPos, cv::Size(2200, 348));
     cv::Mat ROI = gray(roi).clone();
 
-    // cv::imshow(win_name, ROI);
-    // cv::waitKey(0);
+    cv::imshow(win_name, ROI);
+    cv::waitKey(0);
     // return;
     cv::Mat bin;
-    cv::threshold(ROI, bin, 50, 255, cv::THRESH_BINARY);
+    cv::threshold(ROI, bin, 30, 255, cv::THRESH_BINARY);
     cv::Mat gauss;
     cv::GaussianBlur(bin, gauss, cv::Size(5, 5), 25);
 
-    // cv::imshow(win_name, bin);
-    // cv::waitKey(0);
-    // cv::imshow(win_name, gauss);
-    // cv::waitKey(0);
+    cv::imshow(win_name, bin);
+    cv::waitKey(0);
+    cv::imshow(win_name, gauss);
+    cv::waitKey(0);
     // return;
 
     cv::Mat dst, edge;
     cv::Scharr(gauss, dst, CV_32F, 1, 0);
     cv::convertScaleAbs(dst, edge);
 
-    // cv::imshow(win_name, edge);
-    // cv::waitKey(0);
+    cv::imshow(win_name, edge);
+    cv::waitKey(0);
     // return;
 
     std::vector<cv::Vec4f> lines;
-    cv::HoughLinesP(edge, lines, 1, CV_PI / 180, 350, 1000, 300);
+    cv::HoughLinesP(edge, lines, 1, CV_PI / 180, 200, 500, 300);
     std::cout << lines.size() << std::endl;
     // return;
     // 最小二乘拟合
@@ -521,56 +521,39 @@ void Test_GetBotCameraPosLine(cv::Mat img) {
 }
 
 void Test_GetClampTemplate_BotC(cv::Mat img) {
-    cv::namedWindow(win_name, cv::WINDOW_NORMAL);
+    // cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     // cv::resizeWindow(win_name, cv::Size(1300, 1000));
-    // cv::Rect roi(1200, 1050, 700, 250);
-    // cv::rectangle(img, roi, cv::Scalar(0, 0, 255), 2);
+    // cv::Rect roi(1300, 1300, 700, 250);
+    // // cv::rectangle(img, roi, cv::Scalar(0, 0, 255), 2);
     // cv::imshow(win_name, img);
     // cv::waitKey(0);
     // cv::Mat ROI = img(roi).clone();
     // cv::imwrite("../test/debug/image/output/clamp_bot.png", ROI);
     // return;
-    cv::resizeWindow(win_name, cv::Size(1400, 500));
+
     cv::Mat gray;
     cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
-    cv::circle(img, cv::Point2f(75, 85), 2, cv::Scalar(0, 0, 255));
-    cv::circle(img, cv::Point2f(455, 86), 2, cv::Scalar(0, 0, 255));
-    cv::circle(img, cv::Point2f(465, 86), 2, cv::Scalar(0, 0, 255));
-    cv::circle(img, cv::Point2f(475, 86), 2, cv::Scalar(0, 0, 255));
-    cv::imshow(win_name, img);
-    cv::waitKey(0);
-    return;
-    cv::Mat bin;
-    cv::threshold(gray, bin, 25, 255, cv::THRESH_BINARY_INV);
-    cv::imshow(win_name, bin);
-    cv::waitKey(0);
-    cv::Mat dst_1, dst_2;
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
-    cv::morphologyEx(bin, dst_1, cv::MORPH_CLOSE, kernel);
-    cv::morphologyEx(dst_1, dst_2, cv::MORPH_OPEN, kernel);
+    cv::Mat Imgblur;
+    cv::medianBlur(gray, Imgblur, 3);
 
-    cv::imshow(win_name, dst_1);
+    // 提取轮廓
+    cv::Mat edges;
+    cv::Canny(Imgblur, edges, 80, 90);
+    cv::imshow("test", edges);
     cv::waitKey(0);
-    cv::imshow(win_name, dst_2);
-    cv::waitKey(0);
-    return;
-    cv::Mat edge;
-    cv::Canny(dst_2, edge, 50, 150);
-    cv::imshow(win_name, edge);
+    cv::Rect black(0, 0, 700, 95);
+    edges(black).setTo(cv::Scalar(0));
+    cv::imshow("test", edges);
     cv::waitKey(0);
 
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(edge, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-    std::vector<cv::Point> contours_1;
-    for (auto &contour : contours) {
-        if (contour.size() < 20) {
-            continue;
-        }
-        contours_1.insert(contours_1.end(), contour.begin(), contour.end());
+    std::vector<std::vector<cv::Point>> contours_;
+    cv::findContours(edges, contours_, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    std::vector<cv::Point> contours;
+    for (auto &contour : contours_) {
+        contours.insert(contours.end(), contour.begin(), contour.end());
     }
-    std::cout << contours_1.size() << std::endl;
 
-    cv::RotatedRect rect = cv::minAreaRect(contours_1);
+    cv::RotatedRect rect = cv::minAreaRect(contours);
     cv::Point2f rectPoints[4];
     rect.points(rectPoints);
 
@@ -581,6 +564,7 @@ void Test_GetClampTemplate_BotC(cv::Mat img) {
     }
     cv::imshow(win_name, img);
     cv::waitKey(0);
+    return;
 
     // _points.push_back(cv::Point2f(48.6546, 135.857));
     // _points.push_back(cv::Point2f(49.0382, 83.816));

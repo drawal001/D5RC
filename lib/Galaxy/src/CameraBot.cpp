@@ -20,23 +20,23 @@ namespace D5R {
 CameraBot::CameraBot(std::string id) : GxCamera(id) {
     // 加载模板
     std::string root(ROOT_DIR);
-    _clamp = cv::imread(root + "/lib/Galaxy/image/model/botmodel_clamp.png", 0);
-    _points.push_back(cv::Point2f(49.0382, 83.816));
-    _points.push_back(cv::Point2f(482.029, 87.0076));
-
+    _clamp = cv::imread(root + "/lib/Galaxy/image/model/botCTemplate/clamp_bot.png", 0);
+    _points.push_back(cv::Point2f(93.9549, 95.2925));
+    _points.push_back(cv::Point2f(513.976, 91.9765));
+    _line_a = -0.00116294;
+    _line_b = 1718.94;
     _mapParam = 0.00943614; // 需要重新标定，只标定高度
 }
 
 /**
- * @brief 获取平台的水平线 y = ax + b, 返回值为{a, b}
+ * @brief 获取平台的水平线 y = ax + b, 每次移动相机后均要重新更新
  *
  * @param img 输入图像，为灰度图
- * @return std::vector<float>
  */
-std::vector<float> CameraBot::GetHorizontalLine(cv::Mat img) {
+void CameraBot::GetHorizontalLine(cv::Mat img) {
     // 将钳口台下半部分遮住，防止干扰，具体使用根据钳口台与相机高度而定
-    cv::Point2f roiPos(0, 1500);
-    cv::Rect roi = cv::Rect(roiPos, cv::Size(2592, 548));
+    cv::Point2f roiPos(200, 1700);
+    cv::Rect roi = cv::Rect(roiPos, cv::Size(2200, 348));
     cv::Mat ROI = img(roi).clone();
 
     // 图像处理
@@ -48,7 +48,7 @@ std::vector<float> CameraBot::GetHorizontalLine(cv::Mat img) {
     cv::Scharr(gauss, dst, CV_32F, 1, 0);
     cv::convertScaleAbs(dst, edge);
     std::vector<cv::Vec4f> lines;
-    cv::HoughLinesP(edge, lines, 1, CV_PI / 180, 350, 1000, 300);
+    cv::HoughLinesP(edge, lines, 1, CV_PI / 180, 200, 500, 300);
 
     // 最小二乘拟合
     int n = lines.size() * 2;
@@ -62,9 +62,8 @@ std::vector<float> CameraBot::GetHorizontalLine(cv::Mat img) {
     float mean_x = sum_x / n;
     float mean_y = sum_y / n;
 
-    float a = (sum_xy - n * mean_x * mean_y) / (sum_x2 - n * mean_x * mean_x);
-    float b = (mean_y - a * mean_x);
-    return {a, b};
+    _line_a = (sum_xy - n * mean_x * mean_y) / (sum_x2 - n * mean_x * mean_x);
+    _line_b = (mean_y - _line_a * mean_x);
 }
 
 /**
@@ -107,10 +106,9 @@ std::vector<cv::Point2f> CameraBot::GetModelPoints(cv::Mat img) {
  * @brief 返回夹钳与平台的垂直距离 + 0.3mm
  *
  * @param img 输入图像，一般为灰度图
- * @param line_params 平台直线，由CameraBot::GetHorizontalLine() 获取
  * @return double
  */
-double CameraBot::GetDistance(cv::Mat img, std::vector<float> line_params) {
+double CameraBot::GetDistance(cv::Mat img) {
     cv::Mat res;
     cv::matchTemplate(img, _clamp, res, cv::TM_SQDIFF_NORMED);
     cv::Point minLoc, maxLoc;
@@ -119,7 +117,7 @@ double CameraBot::GetDistance(cv::Mat img, std::vector<float> line_params) {
     cv::Point2f minLoc_(minLoc.x, minLoc.y);
     double distance = 0;
     for (int i = 0; i < _points.size(); ++i) {
-        distance += (abs(line_params[0] * (_points[i].x + minLoc_.x) - _points[i].y - minLoc_.y + line_params[1]) / sqrt(line_params[0] * line_params[0] + 1));
+        distance += (abs(_line_a * (_points[i].x + minLoc_.x) - _points[i].y - minLoc_.y + _line_b) / sqrt(_line_a * _line_b + 1));
     }
     distance /= _points.size();
     return distance * _mapParam + 0.3;
