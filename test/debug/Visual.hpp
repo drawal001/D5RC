@@ -22,7 +22,7 @@ std::string win_name = "test";
 void Test_GetAndSaveImg(D5R::CameraTop *topCamera) {
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1295, 1024));
-    int count = 2;
+    int count = 404;
     cv::Mat img_top;
     while (topCamera->Read(img_top)) {
 
@@ -51,7 +51,7 @@ void Test_GetAndSaveImg(D5R::CameraTop *topCamera) {
 void Test_GetAndSaveImg(D5R::CameraBot *botCamera) {
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1295, 1024));
-    int count = 1;
+    int count = 2;
 
     cv::Mat img_bot;
     while (botCamera->Read(img_bot)) {
@@ -573,4 +573,27 @@ void Test_GetClampTemplate_BotC(cv::Mat img) {
     // //
     // float a = -0.00201866, b = 787.792;
     // cv::line(img, cv::Point2f(200, 200 * a + b), cv::Point2f(2000, 2000 * a + b), cv::Scalar(0, 0, 255), 2);
+}
+
+double Test_GetFallingHeight(cv::Mat img) {
+    std::vector<cv::Point2f> _points;
+    _points.push_back(cv::Point2f(93.9549, 95.2925));
+    _points.push_back(cv::Point2f(513.976, 91.9765));
+    float _line_a = -0.00116294;
+    float _line_b = 1718.94;
+    float _mapParam = 0.00943614;
+
+    cv::Mat res;
+    cv::Mat clamp = cv::imread("../test/debug/image/output/clamp_bot.png", 0);
+    cv::matchTemplate(img, clamp, res, cv::TM_SQDIFF_NORMED);
+    cv::Point minLoc, maxLoc;
+    double minVal, maxVal;
+    cv::minMaxLoc(res, &minVal, &maxVal, &minLoc, &maxLoc);
+    cv::Point2f minLoc_(minLoc.x, minLoc.y);
+    double distance = 0;
+    for (int i = 0; i < _points.size(); ++i) {
+        distance += (abs(_line_a * (_points[i].x + minLoc_.x) - _points[i].y - minLoc_.y + _line_b) / sqrt(_line_a * _line_a + 1));
+    }
+    distance /= _points.size();
+    return -distance * _mapParam + 0.3;
 }

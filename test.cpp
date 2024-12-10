@@ -11,36 +11,32 @@ int main() {
     std::cout << "Hello Robot!" << std::endl;
     D5R::D5Robot robot;
 
-    // try {
-    //     robot.InitNator();
-    // } catch (D5R::RobotException &e) {
-    //     std::cout << e.what() << std::endl;
-    // }
+    robot.InitNator();
 
-    // try {
-    //     robot.InitRMD(port.c_str());
-    // } catch (D5R::RobotException &e) {
-    //     std::cout << e.what() << std::endl;
-    // }
+    robot.InitRMD(port.c_str());
 
-    // try {
-    //     robot.InitTopCamera();
-    // } catch (D5R::RobotException &e) {
-    //     std::cout << e.what() << std::endl;
-    // }
+    // robot.InitTopCamera();
 
-    // try {
-    //     robot.InitBotCamera();
-    // } catch (D5R::RobotException &e) {
-    //     std::cout << e.what() << std::endl;
-    // }
+    // robot.InitBotCamera();
 
-    // robot.JointsMoveAbsolute({0, 0, 14000000, 5000000, 0});
-    // robot.JointsMoveRelative({0, 0, 0, 5000000, 0});
+    robot.JointsMoveAbsolute({0, 0, 7500000, 5000000, 0});
+    // robot.JointsMoveRelative({0, 0, 1000000, 0, 0});
     // robot.JointsMoveAbsolute({0, 0, 7500000, 0, 0});
 
     // cv::Mat img = cv::imread("../image/12_10/botC_1.png");
     // Test_GetBotCameraPosLine(img);
+    // Sleep(4000);
+    // cv::Mat img = cv::imread("../image/12_10/botC_2.png", 0);
+    // double h = Test_GetFallingHeight(img);
+    // TaskSpace pError{0, 0, h, 0, 0};
+    // JointSpace jError = KineHelper::InverseDifferential(pError, robot.GetCurrentPose());
+    // std::cout << h << std::endl;
+    // std::cout << std::endl;
+    // std::cout << jError.R1 << std::endl;
+    // std::cout << jError.P2 << std::endl;
+    // std::cout << jError.P3 << std::endl;
+    // std::cout << jError.P4 << std::endl;
+    // std::cout << jError.R5 << std::endl;
 
     // robot.VCJawChange();
 

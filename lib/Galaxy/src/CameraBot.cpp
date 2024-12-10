@@ -117,10 +117,10 @@ double CameraBot::GetDistance(cv::Mat img) {
     cv::Point2f minLoc_(minLoc.x, minLoc.y);
     double distance = 0;
     for (int i = 0; i < _points.size(); ++i) {
-        distance += (abs(_line_a * (_points[i].x + minLoc_.x) - _points[i].y - minLoc_.y + _line_b) / sqrt(_line_a * _line_b + 1));
+        distance += (abs(_line_a * (_points[i].x + minLoc_.x) - _points[i].y - minLoc_.y + _line_b) / sqrt(_line_a * _line_a + 1));
     }
     distance /= _points.size();
-    return distance * _mapParam + 0.3;
+    return -distance * _mapParam + 0.3;
 }
 
 /**

@@ -76,9 +76,9 @@ class KineHelper {
 
         double dRz = deltaSpace.Rz * pi / 180.0; // !!!计算时需要用弧度值!!!
         double dRy = deltaSpace.Ry * pi / 180.0;
-        double dPx = deltaSpace.Px * pi;
-        double dPy = deltaSpace.Py * pi;
-        double dPz = deltaSpace.Pz * pi;
+        double dPx = deltaSpace.Px;
+        double dPy = deltaSpace.Py;
+        double dPz = deltaSpace.Pz;
 
         double rz = currentSpace.Rz;
         double ry = currentSpace.Ry;

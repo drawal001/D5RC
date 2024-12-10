@@ -221,7 +221,7 @@ void D5Robot::VCJawChange() {
     TaskSpace pError{posError[1], posError[0], 0, 0, posError[2]};
     JointSpace jError{};
     while (abs(pError.Px) > 0.1 || abs(pError.Py) > 0.1 || abs(pError.Rz) > 0.1) {
-        pError.Px = 0.3 * pError.Px;
+        pError.Px = 0.4 * pError.Px;
         pError.Rz = -0.5 * pError.Rz;
         pError.Py = 0.4 * pError.Py;
         jError = KineHelper::InverseDifferential(pError, GetCurrentPose());
@@ -233,34 +233,44 @@ void D5Robot::VCJawChange() {
     }
 
     // 下移
-    JointsMoveRelative({0, 0, 0, 7500000, 0}); // 有问题~
+    // JointsMoveRelative({0, 0, 0, 2600000, 0}); // 有问题~
+    cv::Mat img_2;
+    botCamera->Read(img_2);
+    double h = botCamera->GetDistance(img_2);
+    JointsMoveRelative({0, 0, 0, int(-h * 1000000), 0});
+    Sleep(1000);
 
     // // 插入
     posError.clear();
     posError = topCamera->GetPhysicError(Fine);
-    pError = {posError[1], posError[0], 0, 0, posError[2]};
-    while (abs(pError.Px) > 0.1 || abs(pError.Py) > 0.1 || abs(pError.Rz) > 0.1) {
-        if (abs(pError.Rz) > 5) {
+    pError = {posError[1], posError[0], 0, 0, 0};
+    while (abs(pError.Px) > 0.1 || abs(pError.Py) > 0.1) {
+        if (abs(posError[2]) > 20) {
             JointsMoveRelative({0, 0, -1000000, 0, 0});
             Sleep(500);
             posError.clear();
             posError = topCamera->GetPhysicError(Fine);
-            pError = {posError[1], posError[0], 0, 0, posError[2]};
+            pError = {posError[1], posError[0], 0, 0, -0.5 * posError[2]};
             continue;
         }
-        pError.Px = 0.1 * pError.Px;
-        pError.Rz = -0.5 * pError.Rz;
+        pError.Px = 0.25 * pError.Px;
         pError.Py = 0.4 * pError.Py;
         jError = KineHelper::InverseDifferential(pError, GetCurrentPose());
         JointsMoveRelative(jError.ToControlJoint());
         Sleep(500);
         posError.clear();
-        posError = topCamera->GetPhysicError(Fine);
-        pError = {posError[1], posError[0], 0, 0, posError[2]};
+        try {
+            posError = topCamera->GetPhysicError(Fine);
+        } catch (RobotException err) {
+            JointsMoveRelative({0, 0, -1000000, 0, 0});
+            Sleep(500);
+            posError = topCamera->GetPhysicError(Fine);
+        }
+        pError = {posError[1], posError[0], 0, 0, 0};
     }
 
     // // 上抬
-    JointsMoveRelative({0, 0, 0, -8300000, 0});
+    JointsMoveRelative({0, 0, 0, -2500000, 0});
 }
 
 } // namespace D5R

@@ -26,7 +26,7 @@ RMDMotor::RMDMotor() {}
  */
 RMDMotor::RMDMotor(HANDLE comHandle, uint8_t id) : _id(id) {
     _handle = comHandle;
-    GetPI();
+    // GetPI();
 }
 
 /**
