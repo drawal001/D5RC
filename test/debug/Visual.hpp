@@ -461,6 +461,11 @@ void Test_GetClampTemplate(cv::Mat img) {
     cv::destroyAllWindows();
 }
 
+/**
+ * @brief 获取钳口库水平定位线，用的是最小二乘拟合，反正最后位置也看不到，那就调FailingHeight这个函数吧
+ * 
+ * @param img 
+ */
 void Test_GetBotCameraPosLine(cv::Mat img) {
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1295, 275));
@@ -520,6 +525,11 @@ void Test_GetBotCameraPosLine(cv::Mat img) {
     cv::waitKey(0);
 }
 
+/**
+ * @brief 获取BotC钳口模板，用于计算所需的下移距离
+ * 
+ * @param img 
+ */
 void Test_GetClampTemplate_BotC(cv::Mat img) {
     // cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     // cv::resizeWindow(win_name, cv::Size(1300, 1000));
@@ -565,16 +575,14 @@ void Test_GetClampTemplate_BotC(cv::Mat img) {
     cv::imshow(win_name, img);
     cv::waitKey(0);
     return;
-
-    // _points.push_back(cv::Point2f(48.6546, 135.857));
-    // _points.push_back(cv::Point2f(49.0382, 83.816));
-    // _points.push_back(cv::Point2f(482.029, 87.0076));
-    // _points.push_back(cv::Point2f(481.646, 139.049));
-    // //
-    // float a = -0.00201866, b = 787.792;
-    // cv::line(img, cv::Point2f(200, 200 * a + b), cv::Point2f(2000, 2000 * a + b), cv::Scalar(0, 0, 255), 2);
 }
 
+/**
+ * @brief 获取z轴下移距离函数，使用的是模板匹配一步到位，由于botC看不到最终的位置，需要反复调试
+ * 
+ * @param img 
+ * @return double 
+ */
 double Test_GetFallingHeight(cv::Mat img) {
     std::vector<cv::Point2f> _points;
     _points.push_back(cv::Point2f(93.9549, 95.2925));
@@ -596,4 +604,14 @@ double Test_GetFallingHeight(cv::Mat img) {
     }
     distance /= _points.size();
     return -distance * _mapParam + 0.3;
+}
+
+void Test_Deformation_SURF(cv::Mat img){
+    cv::Mat temp = cv::imread("../test/debug/image/output/jaw.png");
+    cv::Point roiPos_L(30, 0), roiPos_R(360, 0);
+    cv::Rect roi_L(roiPos_L, cv::Size(270, 800)), roi_R(roiPos_R, cv::Size(270, 800));
+    cv::rectangle(temp, roi_L, cv::Scalar(0, 0, 255), 2);
+    cv::rectangle(temp, roi_R, cv::Scalar(0, 0, 255), 2);
+    cv::imshow(win_name, temp);
+    cv::waitKey(0);
 }

@@ -11,15 +11,15 @@ int main() {
     std::cout << "Hello Robot!" << std::endl;
     D5R::D5Robot robot;
 
-    robot.InitNator();
+    // robot.InitNator();
 
-    robot.InitRMD(port.c_str());
+    // robot.InitRMD(port.c_str());
 
     // robot.InitTopCamera();
 
     // robot.InitBotCamera();
 
-    robot.JointsMoveAbsolute({0, 0, 7500000, 5000000, 0});
+    // robot.JointsMoveAbsolute({0, 0, 7500000, 5000000, 0});
     // robot.JointsMoveRelative({0, 0, 1000000, 0, 0});
     // robot.JointsMoveAbsolute({0, 0, 7500000, 0, 0});
 
@@ -42,6 +42,8 @@ int main() {
 
     // Test_GetAndSaveImg(robot.topCamera);
     // Test_GetAndSaveImg(robot.botCamera);
+    cv::Mat img = cv::imread("../image/12_10/topC_404.png");
+    Test_Deformation_SURF(img);
 
     return 0;
 }
