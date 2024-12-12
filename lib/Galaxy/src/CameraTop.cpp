@@ -31,9 +31,9 @@ CameraTop::CameraTop(std::string id) : GxCamera(id) {
     fs2.release();
     // 钳口模板
     _jaw.img = cv::imread(root + "/lib/Galaxy/image/model/jawTemplate/jaw.png", 0);
-    _jaw.center = cv::Point2f(327.701, 401.002);
-    _jaw.point = cv::Point2f(325.538, 35.4998);
-    _jaw.jaw_Circle_Center = cv::Point2f(329.015, 87.7464);
+    _jaw.center = cv::Point2f(299, 379.5);
+    _jaw.point = cv::Point2f(299, 15);
+    _jaw.jaw_Circle_Center = cv::Point2f(300.648, 66.6704);
     cv::FileStorage fs3(root + "/lib/Galaxy/image/model/jawTemplate/KeyPoints_Jaw.yml", cv::FileStorage::READ);
     fs3["keypoints"] >> _jaw.keypoints;
     fs3.release();

@@ -11,8 +11,10 @@
 #pragma once
 #include "CameraBot.h"
 #include "CameraTop.h"
+#include <time.h>
 
 std::string win_name = "test";
+static time_t t;
 
 /**
  * @brief 读取和保存图像，重载：topC
@@ -22,19 +24,16 @@ std::string win_name = "test";
 void Test_GetAndSaveImg(D5R::CameraTop *topCamera) {
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1295, 1024));
-    int count = 404;
     cv::Mat img_top;
     while (topCamera->Read(img_top)) {
-
         // cv::line(img_top, cv::Point(100, 1620), cv::Point(1800, 1620), cv::Scalar(0), 2);
         cv::imshow(win_name, img_top);
         if (cv::waitKey(1) == 27) {
             break;
         }
         if (cv::waitKey(1) == 32) {
-            // topCamera.GetMapParam(img_top);
             std::string filename =
-                "../image/12_10/topC_" + std::to_string(count++) + ".png";
+                "../image/12_12/topC_" + std::to_string(time(&t)) + ".png";
             cv::imwrite(filename, img_top);
             // std::cout << count++ << std::endl;
             continue;
@@ -51,8 +50,6 @@ void Test_GetAndSaveImg(D5R::CameraTop *topCamera) {
 void Test_GetAndSaveImg(D5R::CameraBot *botCamera) {
     cv::namedWindow(win_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(win_name, cv::Size(1295, 1024));
-    int count = 2;
-
     cv::Mat img_bot;
     while (botCamera->Read(img_bot)) {
 
@@ -62,9 +59,8 @@ void Test_GetAndSaveImg(D5R::CameraBot *botCamera) {
             break;
         }
         if (cv::waitKey(1) == 32) {
-            // botCamera.GetMapParam(img_bot);
             std::string filename =
-                "../image/12_10/botC_" + std::to_string(count++) + ".png";
+                "../image/12_12/botC_" + std::to_string(time(&t)) + ".png";
             cv::imwrite(filename, img_bot);
             // std::cout << count++ << std::endl;
             continue;
@@ -124,18 +120,18 @@ void Test_GetJawTemplate(cv::Mat img) {
     cv::Mat gray;
     cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
 
-    cv::Mat bulr;
-    cv::medianBlur(gray, bulr, 5);
-
-    cv::Point2f roiP(600, 560);
-    cv::Rect roi = cv::Rect(roiP, cv::Size(650, 800));
-    cv::Mat roiImg = bulr(roi).clone();
+    cv::Point2f roiP(600, 630);
+    cv::Rect roi = cv::Rect(roiP, cv::Size(600, 750));
+    cv::Mat roiImg = gray(roi).clone();
     // cv::rectangle(gray, roi, cv::Scalar(0), 4);
     // cv::imshow(win_name, gray);
     // cv::waitKey(0);
     // cv::imwrite("../test/debug/image/output/jaw.png", roiImg);
     // return;
+
     // 图像处理
+    // cv::Mat bulr;
+    // cv::medianBlur(roiImg, bulr, 5);
     cv::Mat jaw_binary;
     cv::threshold(roiImg, jaw_binary, 101, 255, cv::THRESH_BINARY);
     cv::Mat jaw_Gauss;
@@ -201,7 +197,7 @@ void Test_GetJawCircleCenter(cv::Mat img) {
     cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
     cv::Mat bin;
     cv::threshold(gray, bin, 60, 255, cv::THRESH_BINARY);
-    cv::Rect roi(235, 45, 190, 85);
+    cv::Rect roi(205, 25, 190, 85);
     cv::Mat black = cv::Mat(img.size(), gray.type(), cv::Scalar::all(0));
     bin(roi).copyTo(black(roi));
     // cv::rectangle(img, roi, cv::Scalar(0, 0, 255), 2);

@@ -23,27 +23,15 @@ int main() {
     // robot.JointsMoveRelative({0, 0, 1000000, 0, 0});
     // robot.JointsMoveAbsolute({0, 0, 7500000, 0, 0});
 
-    // cv::Mat img = cv::imread("../image/12_10/botC_1.png");
-    // Test_GetBotCameraPosLine(img);
-    // Sleep(4000);
-    // cv::Mat img = cv::imread("../image/12_10/botC_2.png", 0);
-    // double h = Test_GetFallingHeight(img);
-    // TaskSpace pError{0, 0, h, 0, 0};
-    // JointSpace jError = KineHelper::InverseDifferential(pError, robot.GetCurrentPose());
-    // std::cout << h << std::endl;
-    // std::cout << std::endl;
-    // std::cout << jError.R1 << std::endl;
-    // std::cout << jError.P2 << std::endl;
-    // std::cout << jError.P3 << std::endl;
-    // std::cout << jError.P4 << std::endl;
-    // std::cout << jError.R5 << std::endl;
+    cv::Mat img = cv::imread("../test/debug/image/output/jaw.png");
+    Test_GetJawCircleCenter(img);
 
     // robot.VCJawChange();
 
     // Test_GetAndSaveImg(robot.topCamera);
     // Test_GetAndSaveImg(robot.botCamera);
-    cv::Mat img = cv::imread("../image/12_10/topC_404.png");
-    Test_Deformation_SURF(img);
+    // cv::Mat img = cv::imread("../image/12_10/topC_404.png");
+    // Test_Deformation_SURF(img);
 
     return 0;
 }
